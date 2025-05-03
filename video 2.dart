@@ -1,0 +1,274 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+
+void main() {
+  runApp(const BMICalculatorApp());
+}
+
+class BMICalculatorApp extends StatelessWidget {
+  const BMICalculatorApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return NeumorphicApp(
+      debugShowCheckedModeBanner: false,
+      title: 'BMI Calculator',
+      themeMode: ThemeMode.light,
+      theme: const NeumorphicThemeData(
+        baseColor: Color(0xFFDEE9F7),
+        lightSource: LightSource.topLeft,
+        depth: 10,
+      ),
+      home: const BMIScreen(),
+    );
+  }
+}
+
+class BMIScreen extends StatefulWidget {
+  const BMIScreen({super.key});
+
+  @override
+  State<BMIScreen> createState() => _BMIScreenState();
+}
+
+enum Gender { male, female }
+
+class _BMIScreenState extends State<BMIScreen> {
+  double _height = 170;
+  double _weight = 70;
+  int _age = 25;
+  double? _bmi;
+  double? _idealWeight;
+  Gender? _selectedGender;
+
+  void _calculateBMI() {
+    final heightMeters = _height / 100;
+    setState(() {
+      _bmi = _weight / (heightMeters * heightMeters);
+      _idealWeight = _calculateIdealWeight();
+    });
+  }
+
+  double? _calculateIdealWeight() {
+    if (_selectedGender == null) return null;
+
+    final heightInInches = _height / 2.54;
+    const baseHeightInInches = 60; // 5 feet
+    final extraInches = (heightInInches - baseHeightInInches).clamp(0, double.infinity);
+
+    if (_selectedGender == Gender.male) {
+      return 50 + (2.3 * extraInches);
+    } else if (_selectedGender == Gender.female) {
+      return 45.5 + (2.3 * extraInches);
+    } else {
+      return null;
+    }
+  }
+
+  Widget _buildGenderBox(Gender gender, String label, IconData icon) {
+    final isSelected = _selectedGender == gender;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedGender = gender;
+          });
+        },
+        child: Neumorphic(
+          style: NeumorphicStyle(
+            color: isSelected ? Colors.lightBlueAccent : const Color(0xFFE0E0E0),
+            depth: isSelected ? -4 : 4,
+            boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Icon(icon, size: 48, color: Colors.black),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 18, color: Colors.black),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NeumorphicBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: NeumorphicAppBar(
+          title: const Text('BMI Calculator'),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Gender selection row
+              Row(
+                children: [
+                  _buildGenderBox(Gender.male, 'Male', Icons.male),
+                  const SizedBox(width: 16),
+                  _buildGenderBox(Gender.female, 'Female', Icons.female),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Age Box
+              Neumorphic(
+                style: const NeumorphicStyle(
+                  color: Color(0xFFC8E6C9), // Light green
+                  depth: 4,
+                  boxShape: NeumorphicBoxShape.roundRect(BorderRadius.all(Radius.circular(12))),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Text(
+                      'Age: $_age years',
+                      style: const TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              NeumorphicSlider(
+                min: 10,
+                max: 80,
+                value: _age.toDouble(),
+                onChanged: (value) {
+                  setState(() {
+                    _age = value.round();
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              // Height Box
+              Neumorphic(
+                style: const NeumorphicStyle(
+                  color: Color(0xFFB3E5FC), // Light blue
+                  depth: 4,
+                  boxShape: NeumorphicBoxShape.roundRect(BorderRadius.all(Radius.circular(12))),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Text(
+                      'Height: ${_height.toStringAsFixed(0)} cm',
+                      style: const TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              NeumorphicSlider(
+                min: 100,
+                max: 220,
+                value: _height,
+                onChanged: (value) {
+                  setState(() {
+                    _height = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              // Weight Box
+              Neumorphic(
+                style: const NeumorphicStyle(
+                  color: Color(0xFFF8BBD0), // Light pink
+                  depth: 4,
+                  boxShape: NeumorphicBoxShape.roundRect(BorderRadius.all(Radius.circular(12))),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Text(
+                      'Weight: ${_weight.toStringAsFixed(0)} kg',
+                      style: const TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              NeumorphicSlider(
+                min: 30,
+                max: 150,
+                value: _weight,
+                onChanged: (value) {
+                  setState(() {
+                    _weight = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 30),
+              NeumorphicButton(
+                onPressed: _calculateBMI,
+                style: NeumorphicStyle(
+                  color: Colors.lightBlueAccent,
+                  depth: 8,
+                  boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  child: Text(
+                    'Calculate BMI',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              if (_bmi != null)
+                Column(
+                  children: [
+                    Neumorphic(
+                      style: const NeumorphicStyle(
+                        depth: 4,
+                        color: Colors.white,
+                        boxShape: NeumorphicBoxShape.roundRect(BorderRadius.all(Radius.circular(12))),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Your BMI: ${_bmi!.toStringAsFixed(1)}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    if (_idealWeight != null)
+                      Neumorphic(
+                        style: const NeumorphicStyle(
+                          depth: 4,
+                          color: Colors.white,
+                          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.all(Radius.circular(12))),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Ideal weight: ${_idealWeight!.toStringAsFixed(1)} kg',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
